@@ -1,0 +1,57 @@
+[
+  {
+    "model": "app.ingredient",
+    "pk": 1,
+    "fields": {
+      "name": "Carrot",
+      "current_quantity": "500.000",
+      "unit": "g",
+      "minimum_quantity": "100.000",
+      "is_active": true,
+      "notes": "",
+      "accepted_by": 1
+    }
+  },
+  {
+    "model": "app.ingredientdelivery",
+    "pk": 1,
+    "fields": {
+      "ingredient": 1,
+      "quantity": "300.000",
+      "delivered_by": 1,
+      "delivered_at": "2025-05-20"
+    }
+  },
+  {
+    "model": "app.meal",
+    "pk": 1,
+    "fields": {
+      "name": "Carrot Soup",
+      "description": "A healthy carrot soup.",
+      "created_at": "2025-05-28T12:00:00Z",
+      "updated_at": "2025-05-28T12:00:00Z",
+      "is_active": true
+    }
+  },
+  {
+    "model": "app.mealingredient",
+    "pk": 1,
+    "fields": {
+      "meal": 1,
+      "ingredient": 1,
+      "quantity": "250.000"
+    }
+  },
+  {
+    "model": "app.mealserving",
+    "pk": 1,
+    "fields": {
+      "meal": 1,
+      "servings": 2,
+      "served_at": "2025-05-29T08:30:00Z",
+      "served_by": 1,
+      "notes": "",
+      "possible_portions_at_serving": 2
+    }
+  }
+]
