@@ -46,8 +46,8 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'channels',
     # applications
-    'app',
     'accounts',
+    'app.apps.AppConfig',
 
 ]
 ASGI_APPLICATION = 'MealTrack.asgi.application'
@@ -149,8 +149,4 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 
-
-
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
-
-

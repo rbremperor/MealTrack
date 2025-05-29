@@ -89,6 +89,7 @@ class Meal(models.Model):
             if min_portions is None or portions < min_portions:
                 min_portions = portions
         return int(min_portions) if min_portions else 0
+
 class MealIngredient(models.Model):
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name='meal_ingredients')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
