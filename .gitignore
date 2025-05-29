@@ -1,0 +1,61 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+
+# If using virtualenv or venv
+venv/
+env/
+ENV/
+.venv/
+
+# VS Code settings folder
+.vscode/
+
+# macOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# PyCharm
+.idea/
+
+# dotenv environment variables file
+.env
+
+# coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# celery beat schedule file
+celerybeat-schedule
+
+# local SQLite database (if any)
+*.sqlite3
+
+# pytest cache
+.pytest_cache/
+
+# logs
+*.log
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+

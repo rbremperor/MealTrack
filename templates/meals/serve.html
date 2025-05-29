@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3>Serve {{ meal.name }}</h3>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <h5>Ingredients Required:</h5>
+                <ul>
+                    {% for mi in meal.meal_ingredients.all %}
+                        <li>
+                            {{ mi.quantity }}{{ mi.ingredient.unit }} {{ mi.ingredient.name }}
+                            (Available: {{ mi.ingredient.current_quantity }}{{ mi.ingredient.unit }})
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p>Maximum portions available: <strong>{{ meal.possible_portions }}</strong></p>
+            </div>
+
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="servings" class="form-label">Number of Portions</label>
+                    <input type="number" class="form-control" id="servings" name="servings"
+                           min="1" max="{{ meal.possible_portions }}" value="1" required>
+                </div>
+
+                {% if meal.possible_portions > 0 %}
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-cup-hot"></i> Serve Meal
+                    </button>
+                {% else %}
+                    <div class="alert alert-danger">
+                        Cannot serve this meal - insufficient ingredients
+                    </div>
+                {% endif %}
+                <a href="/meals/" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+    <script>
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/inventory/');
+
+        socket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const name = data.ingredient;
+            const quantity = data.quantity;
+            const unit = data.unit;
+            const isLow = data.is_low;
+
+            // Update visible quantity if it's listed
+            const row = Array.from(document.querySelectorAll('li')).find(el => el.textContent.includes(name));
+            if (row) {
+                row.innerHTML = row.innerHTML.replace(/\(Available:.*?\)/, `(Available: ${quantity}${unit})`);
+            }
+
+            // Show alert if low
+            if (isLow) {
+                alert(`⚠️ Warning: ${name} is running low (${quantity}${unit} left)!`);
+            }
+        };
+    </script>
+
+{% endblock %}

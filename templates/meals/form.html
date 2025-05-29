@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h3>{% if meal %}Edit{% else %}Add{% endif %} Meal</h3>
+        </div>
+        <div class="card-body">
+            {% if form.errors or formset.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for error in form.errors.values %}
+                        {% for e in error %}
+                            <li>{{ e }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for form in formset %}
+                        {% for error in form.errors.values %}
+                            {% for e in error %}
+                                <li>{{ e }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ formset.management_form }}
+
+                <div class="mb-3">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">Meal Name</label>
+                    {{ form.name }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                    {{ form.description }}
+                </div>
+
+                <h4 class="mt-4">Ingredients</h4>
+                <div id="ingredients-container">
+                    {% for form in formset %}
+                        <div class="ingredient-form row mb-3 align-items-end"
+                             {% if form.DELETE.value %}style="display: none;"{% endif %}>
+                            {{ form.id }}
+                            <div class="col-md-5">
+                                <label class="form-label">Ingredient</label>
+                                {{ form.ingredient }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Quantity</label>
+                                {{ form.quantity }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Unit</label>
+                                <input type="text" class="form-control unit-display" readonly>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger remove-ingredient" title="Remove">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {{ form.DELETE }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" class="btn btn-secondary mt-2" id="add-ingredient-btn">
+                    <i class="bi bi-plus-circle"></i> Add Ingredient
+                </button>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Save Meal</button>
+                    <a href="{% url 'meal-list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden empty form template for adding new ingredients -->
+<div id="empty-form-template" style="display: none;">
+    <div class="ingredient-form row mb-3 align-items-end">
+        {{ formset.empty_form.id }}
+        <div class="col-md-5">
+            <label class="form-label">Ingredient</label>
+            {{ formset.empty_form.ingredient }}
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Quantity</label>
+            {{ formset.empty_form.quantity }}
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Unit</label>
+            <input type="text" class="form-control unit-display" readonly>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="button" class="btn btn-danger remove-ingredient" title="Remove">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById('ingredients-container');
+    const addBtn = document.getElementById('add-ingredient-btn');
+    const totalForms = document.querySelector('input[name="{{ formset.prefix }}-TOTAL_FORMS"]');
+    const emptyTemplate = document.getElementById('empty-form-template').innerHTML;
+
+    // Map ingredient IDs to units - make sure the unit field exists on ingredient model!
+    const ingredientUnits = {};
+    {% for ingredient in formset.empty_form.fields.ingredient.queryset %}
+        ingredientUnits["{{ ingredient.pk }}"] = "{{ ingredient.unit|escapejs }}";
+    {% endfor %}
+
+    function updateUnitDisplay(ingredientSelect) {
+        const unitInput = ingredientSelect.closest('.ingredient-form').querySelector('.unit-display');
+        const selectedId = ingredientSelect.value;
+        unitInput.value = ingredientUnits[selectedId] || '';
+    }
+
+    // Initialize existing ingredient selects
+    container.querySelectorAll('select[name$="-ingredient"]').forEach(select => {
+        updateUnitDisplay(select);
+        select.addEventListener('change', (e) => updateUnitDisplay(e.target));
+    });
+
+    // Add new ingredient form
+    addBtn.addEventListener('click', () => {
+        const formIndex = parseInt(totalForms.value);
+        let newFormHtml = emptyTemplate.replace(/__prefix__/g, formIndex);
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml.trim();
+        const newForm = tempDiv.firstChild;
+
+        // Setup unit display update listener for the new form
+        const ingredientSelect = newForm.querySelector('select');
+        ingredientSelect.addEventListener('change', () => updateUnitDisplay(ingredientSelect));
+        updateUnitDisplay(ingredientSelect);
+
+        // Setup remove button for the new form
+        newForm.querySelector('.remove-ingredient').addEventListener('click', () => {
+            newForm.remove();
+            updateTotalForms();
+        });
+
+        container.appendChild(newForm);
+        totalForms.value = formIndex + 1;
+    });
+
+    // Remove existing ingredient form (mark for deletion and hide)
+    container.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-ingredient')) {
+            const btn = e.target.closest('.remove-ingredient');
+            const formDiv = btn.closest('.ingredient-form');
+            const deleteCheckbox = formDiv.querySelector('input[type="checkbox"][name$="-DELETE"]');
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = true;
+                formDiv.style.display = 'none';
+            }
+        }
+    });
+
+    function updateTotalForms() {
+        // Count only visible forms that are not deleted
+        const formsCount = container.querySelectorAll('.ingredient-form:not([style*="display: none"])').length;
+        totalForms.value = formsCount;
+    }
+});
+</script>
+
+<style>
+    .ingredient-form {
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+
+    .unit-display {
+        background-color: #e9ecef;
+    }
+
+    input[name$='-DELETE'] {
+        display: none;
+    }
+</style>
+{% endblock %}
