@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Permission, Group
 from django.core.validators import MinValueValidator
@@ -61,13 +62,21 @@ class IngredientDelivery(models.Model):
         return f"{self.quantity}{self.ingredient.unit} of {self.ingredient.name} on {self.delivered_at}"
 
 
-
 class Meal(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name'],
+                condition=Q(is_active=True),
+                name='unique_active_meal_name'
+            )
+        ]
 
     def __str__(self):
         return self.name
@@ -80,8 +89,6 @@ class Meal(models.Model):
             if min_portions is None or portions < min_portions:
                 min_portions = portions
         return int(min_portions) if min_portions else 0
-
-
 class MealIngredient(models.Model):
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name='meal_ingredients')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
