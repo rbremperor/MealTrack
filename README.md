@@ -1,7 +1,3 @@
-Here’s a sample README file with setup instructions tailored for your Django project based on the models you shared:
-
----
-
 # Kindergarten Meal Tracking & Inventory Management System
 
 This is a Django-based web application designed to manage ingredients, meals, deliveries, and meal servings in a kindergarten setting. It supports user roles such as Admin, Manager, and Cook to control access and functionality.
